@@ -1,0 +1,45 @@
+#### v3.0
+============= ollama安裝 =============
+1.使用前請確保已安裝python、WSL、ollama和docker，並確認可以運作，安裝教學影片連結:https://youtu.be/JpQC0W91E6k
+2.docker下載完成後，若無法使用，請在CMD輸入"wsl --install"
+3.確認docker可以運作後，在CMD輸入"docker run -d -p 3000:8080 --add-host=host.docker.internal:host-gateway -v open-webui:/app/backend/data --name open-webui --restart always ghcr.io/open-webui/open-webui:main"
+    ，進入後記得完成帳號註冊
+4.在docker裡的setting，下載模型"qwen3:8b"
+
+============= vscode安裝 =============
+5.pip install -r requirements.txt 可以安裝 requirements.txt 的套件
+6.需下載vscode的Extension API
+7.目前使用的是 "qwen3:8b" ，所以請先確認已經安裝此模型
+8.有6個主要檔案:analyzer.py(呼叫本地API分析)、html_utils.py(HTML處理與萃取)、models.py(Pydantic模型)
+    、server.py(用Flask Server來接收文字/HTML)、tools.py(LangChain工具定義)、requirements.txt(安裝所需套件的項目)、blacklist.py(管理黑名單的資料庫)
+    、phishtank.csv(官方黑名單)、user_blacklist.txt(使用者自訂黑名單)
+9.若出現analyzer.cpython-313.pyc等等之類的東西，那是Python 自動生成的快取檔案，用來加速的，不必把這個傳給其他人也可以動
+10.待補充
+
+============= code =============
+1.目前專案改成使用 LangChain 與 langchain-openai 來產生結構化輸出，不再使用 instructor。
+2.server那裏的flask_cors一定要用，不然可能會連不到extension
+3.http://127.0.0.1:5000/analyze 只會在自己的電腦上有效，所以必須安裝ollama
+4.【新增】LangChain 工具調用功能：
+   - 新增 tools.py 檔案，包含 5 個工具：
+       check_url_safety、analyze_domain_age、check_url_patterns、
+       extract_contact_info、detect_language_anomaly(語言異常檢測)
+   - 目前不再使用 analyze_web() 的 use_tools 參數(已移除)
+   - 現在所有分析均自動啟用工具(無需額外參數)
+   - 工具會自動被 LangChain 呼叫，分析結果會整合到 Evidence 中
+   - Evidence 會被傳給 LLM，並以「短理由」(最多三點)輸出
+   - 工具結果可影響 LLM 判斷，例如：
+       ? 偵測語言異常
+       ? 偵測敏感路徑
+       ? 偵測第三方託管平台
+       ? 偵測域名格式可疑
+       ? 檢查是否有 email / 電話 / 聯絡資訊
+   - 範例：POST {"text": "..."} 即可自動執行工具分析
+
+5.完成整合，可以藉由前端"page_capture"去擷取網頁內容並傳回
+
+============= 使用 =============
+1.啟動方式 : 先確保extension有裝好 -> 啟動server.py -> 在extension輸入資訊並送出 -> 等大約15秒 -> 會在extension那裏看到結果
+2.vscode的"在專用終端機執行python檔案"這個選項來啟動server.py
+3.目前能判斷"html"和"內文"
+4.待補充
